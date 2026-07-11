@@ -1,0 +1,48 @@
+name: THOX Agent Team
+
+on:
+  issues:
+    types: [opened, edited, reopened, labeled, unlabeled]
+  issue_comment:
+    types: [created]
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled, closed]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Run mode: review, prune, full"
+        required: false
+        default: "review"
+  schedule:
+    - cron: "17 8 * * *"
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  actions: read
+  checks: read
+  statuses: read
+
+concurrency:
+  group: thox-agent-team-${{ github.repository }}-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  review:
+    name: THOX issue and PR review
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate agent-team policy
+        shell: bash
+        run: |
+          test -f docs/thox-agent-team.md
+          echo "Repository review policy present for ${{ github.repository }}"
+      - name: Safe merge and pruning policy
+        shell: bash
+        run: |
+          echo "Merge requires passing checks, a non-draft PR, branch protection compliance, and explicit maintainer approval."
+          echo "Pruning is limited to merged same-repository feature branches and excludes default, protected, release, and fork branches."
