@@ -4,8 +4,10 @@
 
 - Reviews issue lifecycle events and issue comments.
 - Reviews pull requests on open, update, ready-for-review, label, and close events.
-- Supports manual review/prune/full dispatch modes.
-- Runs a daily repository hygiene review.
+- Supports manual policy-validation dispatches.
+- Runs a daily repository hygiene policy validation.
+
+The workflow validates that the repository contains the documented review, safe-merge, and branch-pruning policy. It does not directly merge or delete branches; those actions must be performed by an authorized automation or maintainer after all gates below are satisfied.
 
 ## Safe merge gates
 
@@ -21,14 +23,14 @@ A pull request is eligible for automated merge only when all of these conditions
 
 ## Branch pruning policy
 
-Automation may delete only merged same-repository feature branches. It must never delete the default branch, protected branches, release branches, active branches, or branches belonging to forks.
+An authorized automation or maintainer may delete only merged same-repository feature branches. It must never delete the default branch, protected branches, release branches, active branches, or branches belonging to forks.
 
 ## Required repository settings
 
 - GitHub Actions must have read access to checks and statuses.
-- PR and issue write permissions must be enabled for the workflow.
 - Required checks and branch protection must be configured before enabling auto-merge.
 - Prefer squash merge for agent-generated maintenance changes.
+- Enable GitHub's automatic deletion of head branches or use a separate least-privilege janitor workflow for pruning.
 
 ## Required labels
 
