@@ -8,18 +8,13 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled, closed]
   workflow_dispatch:
-    inputs:
-      mode:
-        description: "Run mode: review, prune, full"
-        required: false
-        default: "review"
   schedule:
     - cron: "17 8 * * *"
 
 permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+  contents: read
+  issues: read
+  pull-requests: read
   actions: read
   checks: read
   statuses: read
@@ -30,7 +25,7 @@ concurrency:
 
 jobs:
   review:
-    name: THOX issue and PR review
+    name: THOX issue and PR policy validation
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -39,10 +34,14 @@ jobs:
       - name: Validate agent-team policy
         shell: bash
         run: |
+          set -euo pipefail
           test -f docs/thox-agent-team.md
           echo "Repository review policy present for ${{ github.repository }}"
-      - name: Safe merge and pruning policy
+      - name: Validate documented safety gates
         shell: bash
         run: |
-          echo "Merge requires passing checks, a non-draft PR, branch protection compliance, and explicit maintainer approval."
-          echo "Pruning is limited to merged same-repository feature branches and excludes default, protected, release, and fork branches."
+          set -euo pipefail
+          grep -q "Required checks" docs/thox-agent-team.md
+          grep -q "Branch protection" docs/thox-agent-team.md
+          grep -q "Branch pruning policy" docs/thox-agent-team.md
+          echo "Safe merge and pruning policy validated."
